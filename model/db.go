@@ -2,7 +2,6 @@ package model
 
 import (
 	"github.com/globalsign/mgo"
-	"log"
 )
 
 const (
@@ -15,17 +14,19 @@ const (
 var globalS *mgo.Session
 
 func init() {
-	dialInfo := &mgo.DialInfo{
-		Addrs:    []string{host},
-		Source:   source,
-		Username: user,
-		Password: pass,
-	}
-	s, err := mgo.DialWithInfo(dialInfo)
-	if err != nil {
-		log.Fatalln("create session error ", err)
-	}
-	globalS = s
+	/*
+		dialInfo := &mgo.DialInfo{
+			Addrs:    []string{host},
+			Source:   source,
+			Username: user,
+			Password: pass,
+		}
+		s, err := mgo.DialWithInfo(dialInfo)
+		if err != nil {
+			log.Fatalln("create session error ", err)
+		}
+		globalS = s
+	*/
 }
 
 func connect(db, collection string) (*mgo.Session, *mgo.Collection) {

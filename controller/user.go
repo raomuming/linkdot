@@ -1,9 +1,9 @@
 package controller
 
 import (
-	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"log"
 	"net/http"
 
 	_ "github.com/globalsign/mgo/bson"
@@ -15,8 +15,6 @@ import (
 const (
 	db         = "Linkdot"
 	collection = "User"
-	appid      = ""
-	appsecret  = ""
 )
 
 func Login(w http.ResponseWriter, r *http.Request) {
@@ -27,16 +25,11 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var buffer bytes.Buffer
-	buffer.WriteString("https://api.weixin.qq.com/sns/jscode2session?appid=")
-	buffer.WriteString(appid)
-	buffer.WriteString("&secret=")
-	buffer.WriteString(appsecret)
-	buffer.WriteString("&js_code=")
-	buffer.WriteString(wechatModel.Code)
-	buffer.WriteString("&grant_type=authorization_code")
+	log.Println("code:", wechatModel.Code)
+	log.Println("iv:", wechatModel.Iv)
+	log.Println("crypted data", wechatModel.CryptedData)
 
-	resp, err := http.Get(buffer.String())
+	resp, err := http.Get(utils.GenerateWechatSessionGetUrl(wechatModel.Code))
 	if err != nil {
 		utils.ResponseWithJson(w, http.StatusInternalServerError, "Send request to wechat fail")
 		return
@@ -50,6 +43,20 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if _, ok := result["errcode"]; ok {
+		log.Println("Has error code")
+		utils.ResponseWithJson(w, http.StatusInternalServerError, "Wechat server returns error")
+		return
+	}
+
+	//utils.ResponseWithJson(w, http.StatusOK, "ok")
+	//return
+	var str string
+	if err := json.Unmarshal(*result["session_key"], &str); err != nil {
+		utils.ResponseWithJson(w, http.StatusInternalServerError, "Server decode session_key error")
+		return
+	}
+
 	var cryptedData []byte
 	var sessionKey []byte
 	var iv []byte
@@ -59,7 +66,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if sessionKey, err = base64.StdEncoding.DecodeString("sessionKey"); err != nil {
+	if sessionKey, err = base64.StdEncoding.DecodeString(str); err != nil {
 		utils.ResponseWithJson(w, http.StatusInternalServerError, "Decode sessionKey error")
 		return
 	}
@@ -71,12 +78,18 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	var decoded string
 	if decoded, err = utils.DecryptWxUserData(cryptedData, sessionKey, iv); err != nil {
-		utils.ResponseWithJson(w, http.StatusInternalServerError, "Decrypt Wx dser data error")
+		utils.ResponseWithJson(w, http.StatusInternalServerError, "Decrypt Wx user data error")
 		return
 	}
+	log.Println("decoded data:", decoded)
+
+	// example of decoded data:
+	//{"openId":"oy4oL0btY8jYT1H2GozDCPGCMeo8","nickName":"饶木明","gender":1,"language":"zh_CN","city":"Xiamen","province":"Fujian","country":"China","avatarUrl":"https://wx.qlogo.cn/mmopen/vi_32/ajNVdqHZLLAXV6Z240SrANvfCY27icW54epiaLUfUjicROb5XmUjhbHiaFGK1aszGkYC8icvDy9vqpByGUcAibib4hHjQ/132","watermark":{"timestamp":1539444581,"appid":"wx577c587e3ea2cbd5"}}
 
 	var userInfo map[string]*json.RawMessage
 	if err := json.Unmarshal([]byte(decoded), &userInfo); err != nil {
-		utils.ResponseWithJson(w, http.StatusInternalServerError, "")
+		utils.ResponseWithJson(w, http.StatusInternalServerError, "Decode userInfo error")
+		return
 	}
+
 }

@@ -5,7 +5,7 @@ import (
 
 	"github.com/gorilla/mux"
 	_ "github.com/raomuming/linkdot/auth"
-	_ "github.com/raomuming/linkdot/controller"
+	"github.com/raomuming/linkdot/controller"
 )
 
 type Route struct {
@@ -18,7 +18,7 @@ type Route struct {
 var routes []Route
 
 func init() {
-	//register
+	register("POST", "/login", controller.Login, nil)
 }
 
 func NewRouter() *mux.Router {

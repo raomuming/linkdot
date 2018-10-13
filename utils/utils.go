@@ -1,15 +1,17 @@
 package utils
 
 import (
+	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/json"
+	"log"
 	"net/http"
 )
 
 const (
-	appid     = ""
-	appsecret = ""
+	appid     = "wx577c587e3ea2cbd5"
+	appsecret = "30fc0179adb73fcc040b5e64da9fe0a9"
 )
 
 type Response struct {
@@ -37,4 +39,17 @@ func DecryptWxUserData(encryptedData, sessionKey, iv []byte) (string, error) {
 	aesDecrypter.CryptBlocks(decrypted, encryptedData)
 
 	return string(decrypted), nil
+}
+
+func GenerateWechatSessionGetUrl(code string) string {
+	var buffer bytes.Buffer
+	buffer.WriteString("https://api.weixin.qq.com/sns/jscode2session?appid=")
+	buffer.WriteString(appid)
+	buffer.WriteString("&secret=")
+	buffer.WriteString(appsecret)
+	buffer.WriteString("&js_code=")
+	buffer.WriteString(code)
+	buffer.WriteString("&grant_type=authorization_code")
+	log.Println("generated url:", buffer.String())
+	return buffer.String()
 }
