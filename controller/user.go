@@ -69,10 +69,14 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//var decoded string
-	if _, err := utils.DecryptWxUserData(cryptedData, sessionKey, iv); err != nil {
+	var decoded string
+	if decoded, err = utils.DecryptWxUserData(cryptedData, sessionKey, iv); err != nil {
 		utils.ResponseWithJson(w, http.StatusInternalServerError, "Decrypt Wx dser data error")
 		return
 	}
 
+	var userInfo map[string]*json.RawMessage
+	if err := json.Unmarshal([]byte(decoded), &userInfo); err != nil {
+		utils.ResponseWithJson(w, http.StatusInternalServerError, "")
+	}
 }
