@@ -5,12 +5,12 @@ import (
 )
 
 type Homework struct {
-	Id		bson.ObjectId 	`bson:"_id" json:"id"`
-	Name 	string 			`bson:"name" json:"name"`
+	Id   bson.ObjectId `bson:"_id" json:"id"`
+	Name string        `bson:"name" json:"name"`
 }
 
 const (
-	db 	= "Linkdot"
+	db         = "Linkdot"
 	collection = "Homework"
 )
 

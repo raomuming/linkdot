@@ -1,13 +1,20 @@
 package utils
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
 	"encoding/json"
 	"net/http"
 )
 
+const (
+	appid     = ""
+	appsecret = ""
+)
+
 type Response struct {
-	Code int `json:"code"`
-	Msg string `json:"msg"`
+	Code int         `json:"code"`
+	Msg  string      `json:"msg"`
 	Data interface{} `json:"data"`
 }
 
@@ -16,4 +23,18 @@ func ResponseWithJson(w http.ResponseWriter, code int, payload interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
 	w.Write(response)
+}
+
+// https://www.liwenbin.com/2018/02/%E3%80%90%E5%8E%9F%E3%80%91%E5%BC%80%E5%8F%91%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E4%B8%AD%E8%8E%B7%E5%8F%96unionid%E5%A4%B1%E8%B4%A5-%E9%99%84golang%E4%B8%8Ephp%E7%A4%BA/
+func DecryptWxUserData(encryptedData, sessionKey, iv []byte) (string, error) {
+	var aesBlockDecrypter cipher.Block
+	aesBlockDecrypter, err := aes.NewCipher(sessionKey)
+	if err != nil {
+		return "", err
+	}
+	decrypted := make([]byte, len(encryptedData))
+	aesDecrypter := cipher.NewCBCDecrypter(aesBlockDecrypter, iv)
+	aesDecrypter.CryptBlocks(decrypted, encryptedData)
+
+	return string(decrypted), nil
 }

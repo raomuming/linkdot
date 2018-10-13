@@ -1,12 +1,12 @@
 package auth
 
 import (
-	"net/http"
 	"context"
+	"net/http"
 
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/raomuming/linkdot/model"
 	"github.com/raomuming/linkdot/utils"
-	jwt "github.com/dgrijalva/jwt-go"
 )
 
 func GenerateToken(user *model.User) (string, error) {
@@ -17,15 +17,14 @@ func GenerateToken(user *model.User) (string, error) {
 	return token.SignedString([]byte("secret"))
 }
 
-
 func TokenMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		tokenStr := r.Header.Get("authorization")
 		if tokenStr == "" {
 			utils.ResponseWithJson(w, http.StatusUnauthorized,
 				utils.Response{Code: http.StatusUnauthorized, Msg: "not authorized"})
 		} else {
-			token, _ := jwt.Parse(tokenStr, func(token *jwt.Token)(interface{}, error){
+			token, _ := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 					utils.ResponseWithJson(w, http.StatusUnauthorized,
 						utils.Response{Code: http.StatusUnauthorized, Msg: "not authorized"})

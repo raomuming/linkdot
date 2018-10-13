@@ -3,15 +3,15 @@ package route
 import (
 	"net/http"
 
-	"github.com/raomuming/linkdot/auth"
-	"github.com/raomuming/linkdot/controller"
 	"github.com/gorilla/mux"
+	_ "github.com/raomuming/linkdot/auth"
+	_ "github.com/raomuming/linkdot/controller"
 )
 
 type Route struct {
-	Method 	string
-	Pattern string
-	Handler http.HandlerFunc
+	Method     string
+	Pattern    string
+	Handler    http.HandlerFunc
 	Middleware mux.MiddlewareFunc
 }
 

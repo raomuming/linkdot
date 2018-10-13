@@ -1,23 +1,23 @@
 package model
 
 import (
-	"log"
 	"github.com/globalsign/mgo"
+	"log"
 )
 
 const (
-	host = "127.0.0.1:27017"
+	host   = "127.0.0.1:27017"
 	source = ""
-	user = ""
-	pass = ""
+	user   = ""
+	pass   = ""
 )
 
 var globalS *mgo.Session
 
 func init() {
-	dialInfo := &mgo.DialInfo {
-		Addrs: []string{host},
-		Source: source,
+	dialInfo := &mgo.DialInfo{
+		Addrs:    []string{host},
+		Source:   source,
 		Username: user,
 		Password: pass,
 	}
