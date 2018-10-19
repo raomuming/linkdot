@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	_ "github.com/raomuming/linkdot/auth"
+	"github.com/raomuming/linkdot/auth"
 	"github.com/raomuming/linkdot/controller"
 )
 
@@ -19,6 +19,7 @@ var routes []Route
 
 func init() {
 	register("POST", "/login", controller.Login, nil)
+	register("POST", "/homework", controller.CreateHomework, auth.TokenMiddleware)
 }
 
 func NewRouter() *mux.Router {

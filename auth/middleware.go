@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"log"
 	"net/http"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -33,12 +34,14 @@ func TokenMiddleware(next http.Handler) http.Handler {
 				return []byte("secret"), nil
 			})
 
+			log.Println("token is ", token)
 			if !token.Valid {
 				utils.ResponseWithJson(w, http.StatusUnauthorized,
 					utils.Response{Code: http.StatusUnauthorized, Msg: "not authorized"})
 			} else {
 				// https://gocodecloud.com/blog/2016/11/15/simple-golang-http-request-context-example/
 				if claims, ok := token.Claims.(jwt.MapClaims); ok {
+					log.Println("parse id from token: id = ", claims["id"])
 					ctx := context.WithValue(r.Context(), "Id", claims["id"])
 					next.ServeHTTP(w, r.WithContext(ctx))
 				} else {

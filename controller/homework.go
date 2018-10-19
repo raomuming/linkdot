@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	dao = model.Homework{}
+	homeworkDao = model.Homework{}
 )
 
 func responseWithJson(w http.ResponseWriter, code int, payload interface{}) {
@@ -23,7 +23,7 @@ func responseWithJson(w http.ResponseWriter, code int, payload interface{}) {
 func AllHomeworks(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	var homeworks []model.Homework
-	homeworks, err := dao.FindAll()
+	homeworks, err := homeworkDao.FindAll()
 	if err != nil {
 		responseWithJson(w, http.StatusInternalServerError, err.Error())
 		return
@@ -34,7 +34,7 @@ func AllHomeworks(w http.ResponseWriter, r *http.Request) {
 func FindHomework(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
-	result, err := dao.FindById(id)
+	result, err := homeworkDao.FindById(id)
 	if err != nil {
 		responseWithJson(w, http.StatusInternalServerError, err.Error())
 		return
@@ -45,12 +45,21 @@ func FindHomework(w http.ResponseWriter, r *http.Request) {
 func CreateHomework(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	var homework model.Homework
+
 	if err := json.NewDecoder(r.Body).Decode(&homework); err != nil {
 		responseWithJson(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
+
+	if userId := r.Context().Value("Id"); userId != nil {
+		homework.Creator = userId.(string)
+	} else {
+		responseWithJson(w, http.StatusBadRequest, "not authorized")
+		return
+	}
+
 	homework.Id = bson.NewObjectId()
-	if err := dao.Insert(homework); err != nil {
+	if err := homeworkDao.Insert(homework); err != nil {
 		responseWithJson(w, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -64,7 +73,7 @@ func UpdateHomework(w http.ResponseWriter, r *http.Request) {
 		responseWithJson(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
-	if err := dao.Update(params); err != nil {
+	if err := homeworkDao.Update(params); err != nil {
 		responseWithJson(w, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -74,7 +83,7 @@ func UpdateHomework(w http.ResponseWriter, r *http.Request) {
 func DeleteHomework(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
-	if err := dao.Remove(id); err != nil {
+	if err := homeworkDao.Remove(id); err != nil {
 		responseWithJson(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
