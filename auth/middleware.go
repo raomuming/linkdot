@@ -11,7 +11,8 @@ import (
 
 func GenerateToken(user *model.User) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"username": user.UserName,
+		"name": user.Name,
+		"Id":   user.Id,
 	})
 
 	return token.SignedString([]byte("secret"))

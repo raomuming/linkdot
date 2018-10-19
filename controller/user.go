@@ -1,20 +1,18 @@
 package controller
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"log"
 	"net/http"
 
-	_ "github.com/globalsign/mgo/bson"
+	"github.com/globalsign/mgo/bson"
 	_ "github.com/raomuming/linkdot/auth"
 	"github.com/raomuming/linkdot/model"
 	"github.com/raomuming/linkdot/utils"
 )
 
-const (
-	db         = "Linkdot"
-	collection = "User"
+var (
+	userDao = model.User{}
 )
 
 func Login(w http.ResponseWriter, r *http.Request) {
@@ -49,35 +47,14 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//utils.ResponseWithJson(w, http.StatusOK, "ok")
-	//return
 	var str string
 	if err := json.Unmarshal(*result["session_key"], &str); err != nil {
 		utils.ResponseWithJson(w, http.StatusInternalServerError, "Server decode session_key error")
 		return
 	}
 
-	var cryptedData []byte
-	var sessionKey []byte
-	var iv []byte
-
-	if cryptedData, err = base64.StdEncoding.DecodeString(wechatModel.CryptedData); err != nil {
-		utils.ResponseWithJson(w, http.StatusInternalServerError, "Decode cryptedData error")
-		return
-	}
-
-	if sessionKey, err = base64.StdEncoding.DecodeString(str); err != nil {
-		utils.ResponseWithJson(w, http.StatusInternalServerError, "Decode sessionKey error")
-		return
-	}
-
-	if iv, err = base64.StdEncoding.DecodeString(wechatModel.Iv); err != nil {
-		utils.ResponseWithJson(w, http.StatusInternalServerError, "Decode iv error")
-		return
-	}
-
 	var decoded string
-	if decoded, err = utils.DecryptWxUserData(cryptedData, sessionKey, iv); err != nil {
+	if decoded, err = utils.DecryptWxUserData(wechatModel.CryptedData, str, wechatModel.Iv); err != nil {
 		utils.ResponseWithJson(w, http.StatusInternalServerError, "Decrypt Wx user data error")
 		return
 	}
@@ -92,4 +69,24 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var openId string
+	if err := json.Unmarshal(*userInfo["openId"], &openId); err != nil {
+		utils.ResponseWithJson(w, http.StatusBadRequest, "no openId field.")
+		return
+	}
+
+	var user model.User
+	if user, err = userDao.FindByOpenId(openId); err != nil {
+		user.Id = bson.NewObjectId()
+		user.OpenId = openId
+		var name string = "nickName"
+		_ = json.Unmarshal(*userInfo["nickName"], &name)
+		user.Name = name
+		if err := userDao.Insert(user); err != nil {
+			utils.ResponseWithJson(w, http.StatusInternalServerError, "can not create user")
+			return
+		}
+	}
+
+	utils.ResponseWithJson(w, http.StatusOK, user)
 }

@@ -10,30 +10,30 @@ type Homework struct {
 }
 
 const (
-	db         = "Linkdot"
-	collection = "Homework"
+	db                 = "Linkdot"
+	homeworkCollection = "Homework"
 )
 
 func (h *Homework) Insert(homework Homework) error {
-	return Insert(db, collection, homework)
+	return Insert(db, homeworkCollection, homework)
 }
 
 func (h *Homework) FindAll() ([]Homework, error) {
 	var result []Homework
-	err := FindAll(db, collection, nil, nil, &result)
+	err := FindAll(db, homeworkCollection, nil, nil, &result)
 	return result, err
 }
 
 func (h *Homework) FindById(id string) (Homework, error) {
 	var result Homework
-	err := FindOne(db, collection, bson.M{"_id": bson.ObjectIdHex(id)}, nil, &result)
+	err := FindOne(db, homeworkCollection, bson.M{"_id": bson.ObjectIdHex(id)}, nil, &result)
 	return result, err
 }
 
 func (h *Homework) Update(homework Homework) error {
-	return Update(db, collection, bson.M{"_id": homework.Id}, homework)
+	return Update(db, homeworkCollection, bson.M{"_id": homework.Id}, homework)
 }
 
 func (h *Homework) Remove(id string) error {
-	return Remove(db, collection, bson.M{"_id": bson.ObjectIdHex(id)})
+	return Remove(db, homeworkCollection, bson.M{"_id": bson.ObjectIdHex(id)})
 }
