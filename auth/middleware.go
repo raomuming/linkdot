@@ -12,7 +12,7 @@ import (
 func GenerateToken(user *model.User) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"name": user.Name,
-		"Id":   user.Id,
+		"id":   user.Id,
 	})
 
 	return token.SignedString([]byte("secret"))
@@ -39,7 +39,7 @@ func TokenMiddleware(next http.Handler) http.Handler {
 			} else {
 				// https://gocodecloud.com/blog/2016/11/15/simple-golang-http-request-context-example/
 				if claims, ok := token.Claims.(jwt.MapClaims); ok {
-					ctx := context.WithValue(r.Context(), "UserName", claims["username"])
+					ctx := context.WithValue(r.Context(), "Id", claims["id"])
 					next.ServeHTTP(w, r.WithContext(ctx))
 				} else {
 					utils.ResponseWithJson(w, http.StatusUnauthorized,
