@@ -8,6 +8,7 @@ type User struct {
 	Id     bson.ObjectId `bosn:"_id" json:"id"`
 	Name   string        `bson:"name" json:"name"`
 	OpenId string        `bson:"openId" json:"openId"`
+	Token  string        `bson:"token" json:"token"`
 }
 
 type WechatModel struct {

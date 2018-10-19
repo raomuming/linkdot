@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/globalsign/mgo/bson"
-	_ "github.com/raomuming/linkdot/auth"
+	"github.com/raomuming/linkdot/auth"
 	"github.com/raomuming/linkdot/model"
 	"github.com/raomuming/linkdot/utils"
 )
@@ -82,11 +82,20 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		var name string = "nickName"
 		_ = json.Unmarshal(*userInfo["nickName"], &name)
 		user.Name = name
+		var token string
+		if token, err = auth.GenerateToken(&user); err != nil {
+			utils.ResponseWithJson(w, http.StatusInternalServerError, "generate token failed.")
+			return
+		}
+		user.Token = token
 		if err := userDao.Insert(user); err != nil {
 			utils.ResponseWithJson(w, http.StatusInternalServerError, "can not create user")
 			return
 		}
 	}
 
+	if len(user.Token) == 0 {
+		user.Token, _ = auth.GenerateToken(&user)
+	}
 	utils.ResponseWithJson(w, http.StatusOK, user)
 }
